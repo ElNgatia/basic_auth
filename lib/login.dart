@@ -21,4 +21,8 @@ class SupabaseAuthService {
       'refresh_token': session?.refreshToken,
     };
   }
+
+  Future<void> signOut() async {
+    await _client.auth.signOut();
+  }
 }

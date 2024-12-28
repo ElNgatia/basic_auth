@@ -1,5 +1,7 @@
 import 'dart:developer';
 
+import 'package:basic_auth/login.dart';
+import 'package:basic_auth/login_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -62,6 +64,22 @@ class _HomeScreenState extends State<HomeScreen> {
               });
             },
             icon: const Icon(Icons.download),
+          ),
+
+          // Add a logout button
+          IconButton(
+            onPressed: () async {
+              await const FlutterSecureStorage().delete(key: 'jwt');
+              await SupabaseAuthService(
+                'https://fqdadizukdpmrifhtscs.supabase.co',
+                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxZGFkaXp1a2RwbXJpZmh0c2NzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUzNzcwMTYsImV4cCI6MjA1MDk1MzAxNn0.7l95HYXctBDdwRKE3qa0U7xznNDpKWXnri40Xl4rAhU',
+              ).signOut();
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+            icon: const Icon(Icons.logout),
           ),
         ],
       ),
