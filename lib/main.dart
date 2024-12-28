@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:basic_auth/home_screen.dart';
 import 'package:basic_auth/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +13,9 @@ void main() async {
 
   final bool isLoggedIn = jwt != null;
   if (isLoggedIn) {
-    print('User is logged in');
+    log('User is logged in');
   } else {
-    print('User is not logged in');
+    log('User is not logged in');
   }
   runApp(MaterialApp(
     home: isLoggedIn ? const HomeScreen() : LoginScreen(),

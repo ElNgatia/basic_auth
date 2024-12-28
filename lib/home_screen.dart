@@ -12,11 +12,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<dynamic> cars = [];
-  String errorMessage = '';
+  Future<List<dynamic>>? _carsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   // Function to fetch cars data using the access token
-  Future<void> fetchCars() async {
+  Future<List<dynamic>> fetchCars() async {
     const String supabaseUrl = 'https://fqdadizukdpmrifhtscs.supabase.co';
     final String? accessToken = await const FlutterSecureStorage().read(key: 'jwt');
 
@@ -39,17 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (response.statusCode == 200) {
-      log(response.data);
-      setState(() {
-        cars = response.data;
-        errorMessage = '';
-      });
+      return response.data;
     } else {
-      setState(() {
-        errorMessage = 'Failed to fetch cars ${response.statusMessage}';
-      });
-
-      throw Exception('Failed to fetch cars');
+      throw Exception('Failed to fetch cars: ${response.statusMessage}');
     }
   }
 
@@ -60,23 +56,27 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('Home'),
         actions: [
           IconButton(
-              onPressed: () {
-                fetchCars().onError((error, stackTrace) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Error fetching cars: $error'),
-                      ),
-                    );
-                  }
-                });
-              },
-              icon: const Icon(Icons.download))
+            onPressed: () {
+              setState(() {
+                _carsFuture = fetchCars();
+              });
+            },
+            icon: const Icon(Icons.download),
+          ),
         ],
       ),
-      body: errorMessage.isNotEmpty
-          ? Center(child: Text(errorMessage))
-          : ListView.builder(
+      body: FutureBuilder<List<dynamic>>(
+        future: _carsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No cars available'));
+          } else {
+            final cars = snapshot.data!;
+            return ListView.builder(
               itemCount: cars.length,
               itemBuilder: (context, index) {
                 final car = cars[index];
@@ -85,7 +85,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: Text('Year: ${car['year']} - Color: ${car['color']}'),
                 );
               },
-            ),
+            );
+          }
+        },
+      ),
     );
   }
 }
